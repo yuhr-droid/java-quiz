@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Osarai6_10 一行ずつクイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1a1b24;
+    --panel: #22232f;
+    --gutter: #1e1f29;
+    --line-active: #2d2f42;
+    --text: #e6e4f0;
+    --text-dim: #8b899e;
+    --accent: #7dd3a8;
+    --accent-dim: #4d7a68;
+    --amber: #f2b880;
+    --correct: #6fcf97;
+    --correct-bg: rgba(111,207,151,0.12);
+    --wrong: #eb6b6b;
+    --wrong-bg: rgba(235,107,107,0.12);
+    --border: #33344a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans JP', sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px 80px;
+  }
+  .wrap{width:100%;max-width:720px;}
+  header{margin-bottom:24px;}
+  .kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--accent);
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--text-dim);font-size:13px;line-height:1.6;}
+
+  .progress-row{
+    display:flex;align-items:center;gap:10px;
+    margin:20px 0 18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .progress-bar{
+    flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;background:var(--accent);width:0%;
+    transition:width .3s ease;
+  }
+
+  .editor{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .editor-head{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--border);}
+  .dot:nth-child(1){background:#eb6b6b;opacity:.5;}
+  .dot:nth-child(2){background:#f2b880;opacity:.5;}
+  .dot:nth-child(3){background:#6fcf97;opacity:.5;}
+  .filename{margin-left:6px;}
+
+  .code-lines{font-family:'JetBrains Mono', monospace;font-size:13px;line-height:1.9;padding:10px 0;}
+  .code-line{display:flex;padding:1px 0;}
+  .gutter{
+    width:44px;flex-shrink:0;text-align:right;padding-right:14px;
+    color:var(--text-dim);opacity:.45;user-select:none;
+  }
+  .code-line.context{opacity:.35;}
+  .code-line.active{background:var(--line-active);}
+  .code-line.active .gutter{color:var(--accent);opacity:1;font-weight:700;}
+  .code-text{white-space:pre;color:var(--text);padding-right:14px;overflow-x:auto;}
+  .code-line.context .code-text{color:var(--text-dim);}
+
+  .qpanel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:22px;
+  }
+  .qtext{font-size:15px;font-weight:500;margin:0 0 16px;line-height:1.6;}
+  .options{display:flex;flex-direction:column;gap:9px;}
+  .opt{
+    text-align:left;
+    background:var(--bg);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:12px 14px;
+    border-radius:8px;
+    font-size:14px;
+    font-family:'Noto Sans JP', sans-serif;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+    line-height:1.5;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent-dim);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:var(--correct);background:var(--correct-bg);color:var(--correct);}
+  .opt.wrong{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong);}
+  .opt.dim{opacity:.4;}
+
+  .feedback{
+    margin-top:16px;padding-top:16px;border-top:1px solid var(--border);
+    font-size:13px;color:var(--text-dim);line-height:1.7;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback .verdict{
+    font-family:'JetBrains Mono', monospace;font-weight:700;font-size:12px;
+    letter-spacing:.04em;margin-bottom:6px;display:block;
+  }
+  .feedback.correct-fb .verdict{color:var(--correct);}
+  .feedback.wrong-fb .verdict{color:var(--wrong);}
+
+  .nav-row{display:flex;justify-content:flex-end;margin-top:18px;}
+  .next-btn{
+    background:var(--accent);color:#12261d;border:none;
+    font-family:'Noto Sans JP', sans-serif;font-weight:700;font-size:14px;
+    padding:10px 20px;border-radius:8px;cursor:pointer;
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .next-btn.show{opacity:1;pointer-events:auto;}
+  .next-btn:hover{background:#8fe0b8;}
+
+  .result{display:none;text-align:center;padding:40px 22px;}
+  .result.show{display:block;}
+  .result .score{
+    font-family:'JetBrains Mono', monospace;font-size:44px;font-weight:700;color:var(--accent);
+  }
+  .result .score-label{color:var(--text-dim);font-size:13px;margin-top:4px;}
+  .result p{color:var(--text-dim);font-size:14px;line-height:1.7;max-width:440px;margin:18px auto 26px;}
+  .restart-btn{
+    background:transparent;border:1px solid var(--accent);color:var(--accent);
+    font-family:'Noto Sans JP', sans-serif;font-weight:700;font-size:14px;
+    padding:11px 24px;border-radius:8px;cursor:pointer;
+  }
+  .restart-btn:hover{background:rgba(125,211,168,0.08);}
+
+  #quizStage{display:block;}
+  #quizStage.hidden{display:none;}
+
+  @media (max-width:480px){
+    .code-text{font-size:12px;}
+    h1{font-size:19px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">JAVA READING QUIZ — 全72行</div>
+    <h1>Osarai6_10 一行ずつクイズ</h1>
+    <p class="sub">Seito_10 / Kanri_10 / Osarai6_10 の、空行を除く実質コード全72行を1行ずつ出題します。その行が「何をしているか」を答えてください。</p>
+  </header>
+
+  <div id="quizStage">
+    <div class="progress-row">
+      <span id="progressLabel">1 / 72</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="editor">
+      <div class="editor-head">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="filename" id="fileName">Seito_10.java</span>
+      </div>
+      <div class="code-lines" id="codeLines"></div>
+    </div>
+
+    <div class="qpanel">
+      <p class="qtext" id="qtext"></p>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback">
+        <span class="verdict" id="verdict"></span>
+        <span id="explain"></span>
+      </div>
+      <div class="nav-row">
+        <button class="next-btn" id="nextBtn">次の行 →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="score" id="scoreNum">0 / 72</div>
+    <div class="score-label">正解数</div>
+    <p>お疲れさまでした。全72行を通してSeito_10・Kanri_10・Osarai6_10の構造を確認しました。間違えた行は、もう一度コードを見直してみてください。</p>
+    <button class="restart-btn" id="restartBtn">もう一度最初から</button>
+  </div>
+</div>
+
+<script>
+const Q = [
+{line:1, file:"Seito_10.java", code:'class Seito_10 {', q:"この行は何をしている?", opts:["クラスSeito_10を定義している","メソッドを定義している","変数nameを宣言している","パッケージを宣言している"], correct:0, ex:"classキーワードでSeito_10という名前のクラス(設計図)を定義しています。"},
+{line:3, file:"Seito_10.java", code:'  String name;', q:"この行の意味は?", opts:["名前を入れるフィールドの宣言","名前を表示する処理","コンストラクターの呼び出し","名前を比較するメソッド"], correct:0, ex:"String型のnameというフィールドを用意しているだけで、値の代入はまだ行われません。"},
+{line:4, file:"Seito_10.java", code:'  int suu;', q:"この行の意味は?", opts:["数学の点数を入れるフィールドの宣言","数学の点数を計算するメソッド","数学の点数を表示する処理","コンストラクターの引数"], correct:0, ex:"int型のsuuというフィールド(数学の点数を入れる箱)を宣言しています。"},
+{line:5, file:"Seito_10.java", code:'  int ei;', q:"この行の意味は?", opts:["英語の点数を入れるフィールドの宣言","英語の点数を表示する処理","英語のクラス名","英語の平均を計算するメソッド"], correct:0, ex:"int型のeiというフィールド(英語の点数を入れる箱)を宣言しています。"},
+{line:6, file:"Seito_10.java", code:'  int koku;', q:"この行の意味は?", opts:["国語の点数を入れるフィールドの宣言","国語の点数を表示する処理","国語のコンストラクター","国語の合計を返すメソッド"], correct:0, ex:"int型のkokuというフィールド(国語の点数を入れる箱)を宣言しています。"},
+{line:8, file:"Seito_10.java", code:'  Seito_10(String name, int suu, int ei, int koku){', q:"この行は何を定義している?", opts:["4つの引数を受け取るコンストラクター","display()メソッド","getTotal()メソッド","クラス自体の宣言"], correct:0, ex:"クラス名と同じ名前のメソッド=コンストラクターです。newで呼ばれたとき、この4引数でオブジェクトを初期化します。"},
+{line:9, file:"Seito_10.java", code:'    this.name = name;', q:"この行の意味は?", opts:["引数nameを自身のnameフィールドに代入","自身のnameを引数に代入","2つの引数を比較","nameフィールドを削除"], correct:0, ex:"thisは今作られているオブジェクト自身を指します。引数のnameとフィールドのnameを区別するために使われています。"},
+{line:10, file:"Seito_10.java", code:'    this.suu = suu;', q:"この行の意味は?", opts:["引数suuを自身のsuuフィールドに代入","suuフィールドを0にリセット","suuの値を表示","suuとeiを足し合わせる"], correct:0, ex:"引数で受け取ったsuuの値を、自身のsuuフィールドに代入しています。"},
+{line:11, file:"Seito_10.java", code:'    this.ei = ei;', q:"この行の意味は?", opts:["引数eiを自身のeiフィールドに代入","eiフィールドを削除","eiの平均を計算","eiをsuuに加算"], correct:0, ex:"引数で受け取ったeiの値を、自身のeiフィールドに代入しています。"},
+{line:12, file:"Seito_10.java", code:'    this.koku = koku;', q:"この行の意味は?", opts:["引数kokuを自身のkokuフィールドに代入","kokuの平均を返す","kokuを表示する","kokuを0で初期化する固定値代入"], correct:0, ex:"引数で受け取ったkokuの値を、自身のkokuフィールドに代入しています。"},
+{line:13, file:"Seito_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["コンストラクターSeito_10(...)","display()メソッド","クラスSeito_10全体","for文"], correct:0, ex:"8行目で始まったコンストラクターの終わりを示す閉じ括弧です。"},
+{line:15, file:"Seito_10.java", code:'  void display(){', q:"voidの意味も含め、この行の説明として正しいものは?", opts:["値を返さない表示専用メソッドの定義","int型の値を返すメソッドの定義","フィールドの宣言","コンストラクターの定義"], correct:0, ex:"voidは戻り値なしを表す型です。display()は画面表示だけを行い、値を返す必要がないためvoidになっています。"},
+{line:16, file:"Seito_10.java", code:'    System.out.print(getName() + "さんの３教科の合計点は");', q:"この行の動作は?", opts:["名前を取得し文字列とつなげて表示(改行なし)","名前を新しく設定する","合計点を計算する","エラーメッセージを表示する"], correct:0, ex:"getName()で名前を取得し、「〇〇さんの３教科の合計点は」という文字列とつなげてprint(改行なし)で表示しています。"},
+{line:17, file:"Seito_10.java", code:'    System.out.print(getTotal() + "点　　平均点は");', q:"この行の動作は?", opts:["合計点を取得して表示(改行なし)","平均点を計算して返す","合計点をリセットする","国語の点数だけを表示する"], correct:0, ex:"getTotal()で3教科の合計を取得し、「◯点　　平均点は」を続けて表示(改行なし)しています。"},
+{line:18, file:"Seito_10.java", code:'    System.out.println((int)Math.round(getAve()) + "点です。");', q:"この行の動作は?", opts:["平均を四捨五入・整数変換して表示(改行あり)","平均をそのままdouble型で表示","合計点を四捨五入して表示","名前を表示して終了する"], correct:0, ex:"getAve()の結果をMath.round()で四捨五入し、(int)で整数に変換してから「◯点です。」とprintln(改行あり)で表示しています。"},
+{line:19, file:"Seito_10.java", code:'  }  ', q:"この`}`は何を閉じている?", opts:["display()メソッド","getName()メソッド","コンストラクター","クラス全体"], correct:0, ex:"15行目で始まったdisplay()メソッドの終わりです。"},
+{line:21, file:"Seito_10.java", code:'  String getName(){', q:"この行は何を定義している?", opts:["名前を返すString型メソッド","名前を表示するvoid型メソッド","名前を受け取るコンストラクター","名前を比較するメソッド"], correct:0, ex:"戻り値の型がStringになっているので、このメソッドは呼び出し元に文字列を1つ返します。"},
+{line:22, file:"Seito_10.java", code:'    return name;', q:"この行の意味は?", opts:["nameフィールドの値を呼び出し元に返す","nameを画面に表示する","nameを新しい値に変更する","nameを削除する"], correct:0, ex:"returnで、自身のnameフィールドの値を呼び出し元に持ち帰っています。"},
+{line:23, file:"Seito_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["getName()メソッド","getTotal()メソッド","display()メソッド","コンストラクター"], correct:0, ex:"21行目で始まったgetName()メソッドの終わりです。"},
+{line:25, file:"Seito_10.java", code:'  int getTotal(){', q:"この行は何を定義している?", opts:["3教科の合計を返すint型メソッド","3教科の平均を返すdouble型メソッド","3教科の点数を表示するメソッド","3教科の点数を入力するメソッド"], correct:0, ex:"戻り値の型がintなので、このメソッドは合計点(整数)を1つ返します。"},
+{line:26, file:"Seito_10.java", code:'    return suu+ei+koku;', q:"この行の役割は?", opts:["3教科の合計を計算し呼び出し元に返す","3教科の合計を画面に表示する","3教科をすべて0にリセットする","3教科の平均を計算する"], correct:0, ex:"suu, ei, kokuを足した合計を計算し、returnでint型の値として返しています。"},
+{line:27, file:"Seito_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["getTotal()メソッド","getAve()メソッド","getName()メソッド","display()メソッド"], correct:0, ex:"25行目で始まったgetTotal()メソッドの終わりです。"},
+{line:29, file:"Seito_10.java", code:'  double getAve(){', q:"戻り値の型に注目すると、このメソッドは何を返す?", opts:["小数を扱えるdouble型の値(平均点)","整数のint型の値","文字列のString型の値","何も返さない(void)"], correct:0, ex:"doubleは小数を扱える型です。平均点は割り切れないことが多いため、double型で返しています。"},
+{line:30, file:"Seito_10.java", code:'    return (suu+ei+koku)/3.0;', q:"3ではなく3.0で割っている理由は?", opts:["小数点以下まで正確に計算するため","3.0の方が計算が速いため","3では文法エラーになるため","特に理由はなく同じ結果になる"], correct:0, ex:"整数の3で割ると小数点以下が切り捨てられます。3.0(double)で割ることで平均を正確に計算できます。"},
+{line:31, file:"Seito_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["getAve()メソッド","getTotal()メソッド","クラスSeito_10全体","コンストラクター"], correct:0, ex:"29行目で始まったgetAve()メソッドの終わりです。"},
+{line:32, file:"Seito_10.java", code:'}', q:"この`}`は何を閉じている?", opts:["クラスSeito_10全体","getAve()メソッドだけ","コンストラクターだけ","display()メソッドだけ"], correct:0, ex:"1行目で開いたclass Seito_10 { の対応する閉じ括弧で、クラス全体の終わりです。"},
+
+{line:34, file:"Kanri_10.java", code:'class Kanri_10 {', q:"このクラスの役割は?", opts:["複数のSeito_10をまとめて管理する","1人分の生徒データを持つ","プログラムの実行を開始する","点数を1つだけ保存する"], correct:0, ex:"Kanri_10は生徒(Seito_10)を配列でまとめて管理する「管理係」の役割を持つクラスです。"},
+{line:36, file:"Kanri_10.java", code:'  Seito_10 seito[];', q:"この行が表すものは?", opts:["Seito_10型を複数格納できる配列フィールドの宣言","1人分のSeito_10オブジェクトの宣言","生徒の人数を数える整数変数","配列を実際に作成している行"], correct:0, ex:"まだnewされていないため、配列という入れ物の宣言だけがされている状態です。"},
+{line:38, file:"Kanri_10.java", code:'  Kanri_10(int a){', q:"この行は何を定義している?", opts:["管理人数aを受け取るコンストラクター","addSeito()メソッド","display()メソッド","静的メソッド"], correct:0, ex:"クラス名と同じ名前のメソッド=コンストラクターです。管理したい人数aを引数で受け取ります。"},
+{line:39, file:"Kanri_10.java", code:'    seito = new Seito_10[a];', q:"この行の意味は?", opts:["a個の箱を持つ配列を作成しseitoに代入","a番目の生徒データを削除する","a人分の名前を自動生成する","seitoという名前のSeito_10を1つ作る"], correct:0, ex:"newによって実際にa個分の(中身は空の)配列が作られ、それがseitoフィールドに代入されます。"},
+{line:40, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["Kanri_10のコンストラクター","addSeito()メソッド","display()メソッド","for文"], correct:0, ex:"38行目で始まったコンストラクターの終わりです。"},
+{line:42, file:"Kanri_10.java", code:'  void addSeito(){', q:"このメソッドの役割は?", opts:["生徒データを入力して配列に登録する","生徒データを表示する","生徒の人数を尋ねる","生徒データを削除する"], correct:0, ex:"戻り値なし(void)のメソッドで、後続のfor文で生徒データを入力・登録していきます。"},
+{line:43, file:"Kanri_10.java", code:'    for(int i = 0; i < seito.length; i++){', q:"このfor文の意味は?", opts:["iを0から人数未満まで1ずつ増やして繰り返す","iを人数から0まで減らして繰り返す","seito.lengthの値を毎回変更する","1回だけ処理を実行する"], correct:0, ex:"seito.lengthは配列の要素数(人数)です。iが0から人数未満の間、ループが繰り返されます。"},
+{line:44, file:"Kanri_10.java", code:'      String name = inputName(i + 1);', q:"この行の意味は?", opts:["i+1を渡して名前を入力してもらい変数nameに保存","i番目の生徒データを削除する","名前の文字数を数える","nameという名前のクラスを作る"], correct:0, ex:"iは0始まりなので、表示上「1人目、2人目」とするためにi+1を渡し、入力された名前をnameに保存しています。"},
+{line:45, file:"Kanri_10.java", code:'      seito[i] = new Seito_10(name,inputScore("数学"),inputScore("英語"),inputScore("国語"));', q:"この行で行われていることは?", opts:["3教科の点数を入力させSeito_10を作りi番目に代入","i番目の生徒データを削除する","3教科の平均だけを計算する","配列全体の長さを変更する"], correct:0, ex:"inputScore()を3回呼んで点数を入力させ、nameと合わせてSeito_10オブジェクトを作成、配列のi番目に格納しています。"},
+{line:46, file:"Kanri_10.java", code:'    }', q:"この`}`は何を閉じている?", opts:["43行目のfor文","addSeito()メソッド","Kanri_10のコンストラクター","if文"], correct:0, ex:"43行目で始まったfor文の終わりです。"},
+{line:47, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["addSeito()メソッド","for文","display()メソッド","コンストラクター"], correct:0, ex:"42行目で始まったaddSeito()メソッドの終わりです。"},
+{line:49, file:"Kanri_10.java", code:'  void display(int a){', q:"この行は何を定義している?", opts:["表示対象の番号aを受け取る表示メソッド","生徒の人数aを受け取るコンストラクター","aという名前の生徒を作るメソッド","静的メソッドinputScore"], correct:0, ex:"「何人目を表示するか」を表す引数aを受け取り、以降のif文で表示方法を分岐します。"},
+{line:50, file:"Kanri_10.java", code:'    if(a==0){', q:"この条件がtrueになるのはどんな時?", opts:["全員のデータを表示したいと0を入力した時","生徒が誰も登録されていない時","エラーが発生した時","1人目だけを表示したい時"], correct:0, ex:"displayData()で「全員の場合は0」と案内している通り、aが0のときは全員表示の処理に入ります。"},
+{line:51, file:"Kanri_10.java", code:'      for(int i = 0; i < seito.length; i++){', q:"このfor文の目的は?", opts:["全員分をループしてdisplay()を呼ぶ準備","1人だけを表示する準備","配列を空にする準備","人数を数え直す準備"], correct:0, ex:"a==0(全員表示)のときに、seito配列の全要素を順番に処理するためのループです。"},
+{line:52, file:"Kanri_10.java", code:'        seito[i].display();', q:"この行の意味は?", opts:["i番目の生徒のdisplay()を呼び表示する","i番目の生徒データを削除する","i番目の生徒の点数を変更する","配列の長さを表示する"], correct:0, ex:"seito[i]でi番目の生徒オブジェクトを取り出し、そのdisplay()メソッドを呼んで結果を表示しています。"},
+{line:53, file:"Kanri_10.java", code:'      }', q:"この`}`は何を閉じている?", opts:["51行目のfor文","if(a==0)ブロック","display(int a)メソッド全体","addSeito()"], correct:0, ex:"51行目で始まったfor文の終わりです。"},
+{line:54, file:"Kanri_10.java", code:'    }else if(a-1>=seito.length){', q:"この条件がtrueになるのはどんな時?", opts:["存在しない人数(配列の範囲外)が指定された時","aが0の時","全員の点数が0点の時","配列に誰も登録されていない時"], correct:0, ex:"a-1は0始まりの添字に変換した値です。それがseito.length以上ということは、範囲外の番号が指定されたことを意味します。"},
+{line:55, file:"Kanri_10.java", code:'      System.out.print("オーバーしています！！");', q:"この行が実行されるのはどの条件が成立した時?", opts:["a-1がseito.length以上(範囲外)の時","a==0の時","有効な番号が指定された時","addSeito()が呼ばれた時"], correct:0, ex:"直前の54行目の条件が成立したときに実行される、エラーメッセージの表示です。"},
+{line:56, file:"Kanri_10.java", code:'    }else{', q:"この行が表す条件は?", opts:["a==0でもなく、範囲外でもない(有効な番号)場合","aが必ず0の場合","エラーが発生した場合","for文が終わった場合"], correct:0, ex:"if, else ifのどちらにも当てはまらなかった、つまり有効な番号が指定された場合の処理に入ります。"},
+{line:57, file:"Kanri_10.java", code:'      seito[a-1].display();', q:"この行の意味は?", opts:["a-1番目(a人目)のdisplay()を呼び表示する","a番目の生徒データを削除する","全員のdisplay()を呼ぶ","aの値を0にリセットする"], correct:0, ex:"1始まりのaを0始まりの添字に変換するためa-1を使い、該当する1人だけのdisplay()を呼んでいます。"},
+{line:58, file:"Kanri_10.java", code:'    }', q:"この`}`は何を閉じている?", opts:["56行目のelseブロック","if(a==0)ブロック","51行目のfor文","addSeito()"], correct:0, ex:"56行目で始まったelseブロックの終わりです。"},
+{line:59, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["display(int a)メソッド全体","addSeito()メソッド","Kanri_10のコンストラクター","クラス全体"], correct:0, ex:"49行目で始まったdisplay(int a)メソッド全体の終わりです。"},
+{line:61, file:"Kanri_10.java", code:'  static int inputTotalData(){', q:"staticがついている理由は?", opts:["Kanri_10のオブジェクトを作らずクラス名から直接呼び出せるようにするため","整数しか扱えないようにするため","エラーを防ぐためのおまじない","他クラスから呼び出せなくするため"], correct:0, ex:"staticをつけると、Kanri_10.inputTotalData()のようにオブジェクトを作る前でも呼び出せます。"},
+{line:62, file:"Kanri_10.java", code:'    System.out.print("何人分のデータを入力しますか？");', q:"この行の役割は?", opts:["質問文を画面に表示する(改行なし)","入力された値を計算する","エラーメッセージを表示する","次の行の処理を止める"], correct:0, ex:"ユーザーに何人分入力するか尋ねる質問文を表示しています。"},
+{line:63, file:"Kanri_10.java", code:'    return new java.util.Scanner(System.in).nextInt();', q:"この行の役割は?", opts:["入力された整数を読み取って返す","入力された文字列を読み取って返す","現在の日時を取得して返す","ファイルからデータを読み込む"], correct:0, ex:"Scannerを新しく作り、nextInt()でキーボードから整数を読み取り、それをreturnで返しています。"},
+{line:64, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["inputTotalData()メソッド","displayData()メソッド","addSeito()メソッド","コンストラクター"], correct:0, ex:"61行目で始まったinputTotalData()メソッドの終わりです。"},
+{line:66, file:"Kanri_10.java", code:'  static int displayData(){', q:"この行は何を定義している?", opts:["何人目を表示するか尋ねるstaticメソッド","生徒の名前を尋ねるstaticメソッド","点数を尋ねるstaticメソッド","生徒を表示するインスタンスメソッド"], correct:0, ex:"staticなので、Kanri_10.displayData()のように呼び出せる、表示対象を尋ねるメソッドです。"},
+{line:67, file:"Kanri_10.java", code:'    System.out.print("\\n何人目のデータを表示しますか？　全員の場合は0>");', q:"先頭の\\nの役割は?", opts:["表示する前に改行を1つ入れる","何もしない飾り","エラーを発生させる","文字列を暗号化する"], correct:0, ex:"\\nは改行を表すエスケープシーケンスです。質問文の前に1行分の空白を入れています。"},
+{line:68, file:"Kanri_10.java", code:'    return new java.util.Scanner(System.in).nextInt();', q:"この行の役割は?", opts:["入力された整数(表示対象の番号)を読み取って返す","入力された文字列を読み取って返す","配列の長さを返す","何も返さない"], correct:0, ex:"キーボードから整数を読み取り、それをそのままreturnで返しています。"},
+{line:69, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["displayData()メソッド","inputTotalData()メソッド","inputName()メソッド","display(int a)メソッド"], correct:0, ex:"66行目で始まったdisplayData()メソッドの終わりです。"},
+{line:71, file:"Kanri_10.java", code:'  static String inputName(int a){', q:"戻り値の型に注目すると、このメソッドは何を返す?", opts:["String型の値(名前の文字列)","int型の値(整数)","void(何も返さない)","Seito_10型のオブジェクト"], correct:0, ex:"戻り値の型がStringなので、入力された名前の文字列を返すメソッドです。"},
+{line:72, file:"Kanri_10.java", code:'    System.out.print(a +"人目の名前を入力してください>");', q:"この行の役割は?", opts:["引数aと文字列をつなげて質問文を表示する","aの値を計算して返す","入力された名前を保存する","aをリセットする"], correct:0, ex:"引数a(何人目か)と「人目の名前を入力してください>」をつなげて表示しています。"},
+{line:73, file:"Kanri_10.java", code:'    return new java.util.Scanner(System.in).nextLine();', q:"nextLine()が読み取るものは?", opts:["Enterキーを押すまでの1行分の文字列","整数だけ","半角スペースまでの1単語","ファイルの中身"], correct:0, ex:"nextLine()はEnterが押されるまでの1行分の文字列をまるごと読み取ります。"},
+{line:74, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["inputName()メソッド","inputScore()メソッド","displayData()メソッド","addSeito()メソッド"], correct:0, ex:"71行目で始まったinputName()メソッドの終わりです。"},
+{line:76, file:"Kanri_10.java", code:'  static int inputScore(String a){', q:"引数aの型を見て、このメソッドの役割として正しいものは?", opts:["教科名(文字列)を受け取り点数(整数)を返す","点数(整数)を受け取り名前を返す","名前を受け取り合計を返す","人数を受け取り配列を返す"], correct:0, ex:"引数aはString型で教科名(例:「数学」)を表し、戻り値のint型は入力された点数です。"},
+{line:77, file:"Kanri_10.java", code:'    System.out.print("　" + a + "の点数を入力してください>");', q:"この行の役割は?", opts:["教科名aを含めた質問文を表示する","点数を計算する","エラーを表示する","aを別の値に書き換える"], correct:0, ex:"引数a(教科名)を文中に埋め込んで、「〇〇の点数を入力してください>」と表示しています。"},
+{line:78, file:"Kanri_10.java", code:'    return new java.util.Scanner(System.in).nextInt();', q:"この行の役割は?", opts:["入力された点数(整数)を読み取って返す","入力された教科名を読み取って返す","現在の合計点を返す","何も返さない"], correct:0, ex:"キーボードから整数(点数)を読み取り、そのままreturnで返しています。"},
+{line:79, file:"Kanri_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["inputScore()メソッド","inputName()メソッド","displayData()メソッド","クラスKanri_10全体"], correct:0, ex:"76行目で始まったinputScore()メソッドの終わりです。"},
+{line:80, file:"Kanri_10.java", code:'}', q:"この`}`は何を閉じている?", opts:["クラスKanri_10全体","inputScore()メソッドだけ","display(int a)メソッドだけ","addSeito()メソッドだけ"], correct:0, ex:"34行目で開いたclass Kanri_10 { の対応する閉じ括弧で、クラス全体の終わりです。"},
+
+{line:82, file:"Osarai6_10.java", code:'public class Osarai6_10 {', q:"このクラスの役割は?", opts:["実行の入り口となるクラス(ファイル名と同名)","生徒1人分のデータを持つクラス","複数の生徒を管理するクラス","点数を計算するだけのクラス"], correct:0, ex:"public classかつファイル名(Osarai6_10.java)と同じ名前で、プログラム実行の入口になります。"},
+{line:83, file:"Osarai6_10.java", code:'  public static void main (String[] args) {', q:"この行の役割は?", opts:["プログラム実行時に最初に呼ばれる特別なメソッド","ユーザーが手動で呼び出す普通のメソッド","クラスのフィールド宣言","コンストラクターの定義"], correct:0, ex:"mainメソッドはJavaプログラムを実行したときに自動的に最初に呼び出される、決まった形のメソッドです。"},
+{line:85, file:"Osarai6_10.java", code:'    Kanri_10 object = new Kanri_10(Kanri_10.inputTotalData());', q:"この行の実行順序として正しいものは?", opts:["まずinputTotalData()で人数を聞き、その戻り値でKanri_10を作りobjectに代入する","まずKanri_10を空で作り、その後人数を設定する","objectという名前の生徒データを1件作る","inputTotalData()とnew Kanri_10()は無関係に並行実行される"], correct:0, ex:"カッコの中から外側へ実行されます。先に人数を聞き、その戻り値を使ってKanri_10が作られ、objectに代入されます。"},
+{line:87, file:"Osarai6_10.java", code:'    object.addSeito();', q:"この行の役割は?", opts:["objectのaddSeito()を呼び、生徒データを1人ずつ入力させる","objectを削除する","objectの中身を表示する","objectの人数を数える"], correct:0, ex:"85行目で作ったobject(管理係)に対してaddSeito()を呼び出し、生徒データの入力処理を始めています。"},
+{line:89, file:"Osarai6_10.java", code:'    object.display(Kanri_10.displayData());', q:"この行の全体の流れとして正しいものは?", opts:["何人目を見たいか聞いて、その番号でobjectのdisplay()を呼ぶ","objectのdisplay()を呼んだ後で何人目か聞く","displayDataメソッドが直接画面に成績を表示する","objectとdisplayDataはこの行では無関係"], correct:0, ex:"先にdisplayData()で何人目を見たいか聞き、その番号を引数としてobject.display(...)が実行されます。"},
+{line:91, file:"Osarai6_10.java", code:'  }', q:"この`}`は何を閉じている?", opts:["mainメソッド","クラスOsarai6_10全体","object.display()の呼び出し","if文"], correct:0, ex:"83行目で始まったmainメソッドの終わりです。"},
+{line:92, file:"Osarai6_10.java", code:'}', q:"この`}`は何を閉じている?", opts:["クラスOsarai6_10全体","mainメソッドだけ","object変数の宣言だけ","Kanri_10クラス"], correct:0, ex:"82行目で開いたpublic class Osarai6_10 { の対応する閉じ括弧で、クラス全体の終わりです。"}
+];
+
+let idx = 0;
+let score = 0;
+let answered = false;
+
+const progressLabel = document.getElementById('progressLabel');
+const progressFill = document.getElementById('progressFill');
+const fileName = document.getElementById('fileName');
+const codeLines = document.getElementById('codeLines');
+const qtext = document.getElementById('qtext');
+const optionsEl = document.getElementById('options');
+const feedback = document.getElementById('feedback');
+const verdict = document.getElementById('verdict');
+const explain = document.getElementById('explain');
+const nextBtn = document.getElementById('nextBtn');
+const quizStage = document.getElementById('quizStage');
+const resultEl = document.getElementById('result');
+const scoreNum = document.getElementById('scoreNum');
+const restartBtn = document.getElementById('restartBtn');
+
+function shuffleOptions(item){
+  const opts = item.opts.map((text,i)=>({text, isCorrect:i===item.correct}));
+  for(let i=opts.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [opts[i],opts[j]]=[opts[j],opts[i]];
+  }
+  return opts;
+}
+
+function render(){
+  answered = false;
+  const item = Q[idx];
+  progressLabel.textContent = (idx+1) + ' / ' + Q.length;
+  progressFill.style.width = ((idx)/Q.length*100) + '%';
+  fileName.textContent = item.file;
+
+  codeLines.innerHTML = '';
+  const n = item.line;
+  for(let ln = n-2; ln <= n+2; ln++){
+    if(ln < 1) continue;
+    const row = document.createElement('div');
+    row.className = 'code-line' + (ln===n ? ' active' : ' context');
+    const g = document.createElement('span');
+    g.className = 'gutter';
+    g.textContent = ln;
+    const t = document.createElement('span');
+    t.className = 'code-text';
+    t.textContent = (ln===n) ? item.code : '···';
+    row.appendChild(g);
+    row.appendChild(t);
+    codeLines.appendChild(row);
+  }
+
+  qtext.textContent = item.q;
+  optionsEl.innerHTML = '';
+  feedback.className = 'feedback';
+  feedback.classList.remove('show');
+  nextBtn.classList.remove('show');
+
+  const shuffled = shuffleOptions(item);
+  shuffled.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt.text;
+    btn.addEventListener('click', ()=> selectAnswer(btn, opt, shuffled));
+    optionsEl.appendChild(btn);
+  });
+}
+
+function selectAnswer(btn, opt, shuffled){
+  if(answered) return;
+  answered = true;
+  const item = Q[idx];
+
+  Array.from(optionsEl.children).forEach((b, i)=>{
+    b.disabled = true;
+    const matchedOpt = shuffled[i];
+    if(matchedOpt.isCorrect){
+      b.classList.add('correct');
+    } else if(b === btn){
+      b.classList.add('wrong');
+    } else {
+      b.classList.add('dim');
+    }
+  });
+
+  if(opt.isCorrect){
+    score++;
+    verdict.textContent = '正解！';
+    feedback.classList.add('correct-fb');
+    feedback.classList.remove('wrong-fb');
+  } else {
+    verdict.textContent = '不正解';
+    feedback.classList.add('wrong-fb');
+    feedback.classList.remove('correct-fb');
+  }
+  explain.textContent = item.ex;
+  feedback.classList.add('show');
+  nextBtn.classList.add('show');
+}
+
+nextBtn.addEventListener('click', ()=>{
+  idx++;
+  if(idx >= Q.length){
+    quizStage.classList.add('hidden');
+    resultEl.classList.add('show');
+    scoreNum.textContent = score + ' / ' + Q.length;
+  } else {
+    render();
+  }
+});
+
+restartBtn.addEventListener('click', ()=>{
+  idx = 0; score = 0;
+  resultEl.classList.remove('show');
+  quizStage.classList.remove('hidden');
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

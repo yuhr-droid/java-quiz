@@ -127,4 +127,7 @@ function finish(){quiz.classList.add('hidden');menu.classList.add('hidden');resu
 function showMenu(){quiz.classList.add('hidden');result.classList.add('hidden');menu.classList.remove('hidden');renderMenu();}
 document.getElementById('menuBtn').onclick=showMenu;document.getElementById('allBtn').onclick=startAll;document.getElementById('resultBtn').onclick=finish;document.getElementById('jumpBtn').onclick=showMenu;document.getElementById('nextBtn').onclick=next;document.getElementById('backMenu').onclick=showMenu;
 renderMenu();
+document.getElementById("htmlBtn").onclick = () => {
+location.href = "html.html";
+};
 </script></body></html>

@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML・CSS 全用語クイズ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:linear-gradient(135deg,#f7f3ff,#eef8ff);color:#333}
+.container{max-width:800px;margin:0 auto;padding:28px 16px 50px}
+header{text-align:center;margin-bottom:22px}
+.badge{display:inline-block;padding:6px 13px;border-radius:999px;background:#fff;font-size:13px;color:#7657b8;font-weight:700}
+h1{margin:12px 0 6px;font-size:30px}.subtitle{margin:0;color:#777;line-height:1.6}
+.categories{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:20px 0}
+.cat{border:0;border-radius:20px;padding:9px 14px;background:#fff;cursor:pointer;font-weight:700;color:#666;box-shadow:0 2px 8px #00000010}
+.cat.active{background:#7657b8;color:#fff}
+.card{background:#fff;border-radius:24px;padding:25px;box-shadow:0 10px 30px #00000012}
+.progress{display:flex;justify-content:space-between;font-size:14px;color:#777;margin-bottom:10px}
+.bar{height:9px;background:#eee;border-radius:10px;overflow:hidden;margin-bottom:24px}
+.bar span{display:block;height:100%;background:#7657b8;border-radius:10px;transition:.3s}
+.category-title{font-size:14px;color:#7657b8;font-weight:800;margin-bottom:8px}
+.question{font-size:21px;font-weight:800;line-height:1.6;margin:0 0 20px;white-space:pre-wrap}
+.options{display:grid;gap:11px}
+.option{width:100%;text-align:left;border:2px solid #eee;background:#fff;border-radius:15px;padding:14px 16px;font-size:16px;cursor:pointer;transition:.15s;line-height:1.45}
+.option:hover{border-color:#b9a5df;background:#faf8ff}.option.correct{border-color:#39a96b;background:#eefaf3}.option.wrong{border-color:#e56b6b;background:#fff1f1}.option:disabled{cursor:default}
+.feedback{margin-top:16px;padding:14px;border-radius:14px;display:none;line-height:1.7}.feedback.show{display:block}.feedback.ok{background:#eefaf3;color:#227348}.feedback.ng{background:#fff1f1;color:#a33}
+.next{width:100%;margin-top:16px;border:0;border-radius:15px;padding:14px;background:#7657b8;color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:none}
+.result{text-align:center;display:none}.result h2{font-size:28px;margin-top:8px}.score{font-size:46px;font-weight:900;color:#7657b8;margin:12px}
+.restart{border:0;border-radius:15px;padding:14px 25px;background:#7657b8;color:#fff;font-weight:800;cursor:pointer}
+.review{text-align:left;margin-top:25px}.review-item{background:#fafafa;border-radius:14px;padding:13px;margin:8px 0;font-size:14px;line-height:1.55}
+.small-note{text-align:center;color:#999;font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="container">
+<header><span class="badge">📚 HTML・CSS 用語問題集</span><h1>HTML・CSS 全用語クイズ</h1><p class="subtitle">HTML・CSSの基本からタグ・属性・プロパティまで、4択でまとめて復習しよう！</p></header>
+<div class="categories" id="categories"></div>
+<div class="card">
+<div id="quiz">
+<div class="progress"><span id="progressText"></span><span id="scoreText"></span></div>
+<div class="bar"><span id="progressBar"></span></div>
+<div class="category-title" id="categoryTitle"></div>
+<p class="question" id="question"></p>
+<div class="options" id="options"></div>
+<div class="feedback" id="feedback"></div>
+<button class="next" id="next">次の問題 →</button>
+</div>
+<div class="result" id="result"><div>🎉 クイズ終了！</div><h2>おつかれさま！</h2><div class="score" id="finalScore"></div><p id="resultMessage"></p><button class="restart" onclick="restart()">もう一度挑戦</button><div class="review" id="review"></div></div>
+</div>
+<div class="small-note">HTML基礎・HTMLタグ・HTML属性・CSS基礎・CSSプロパティ・CSSセレクタ・CSS値・単位を収録</div>
+</div>
+<script>
+const questions=[
+  {
+    "cat": "HTML基礎",
+    "q": "HTMLは何の略？",
+    "a": [
+      "Hyper Tool Markup Language",
+      "Home Text Making Language",
+      "Hyper Text Markup Language",
+      "High Text Machine Language"
+    ],
+    "c": 2,
+    "e": "HTMLはHyper Text Markup Languageの略です。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "HTMLの主な役割は？",
+    "a": [
+      "データベースを作る",
+      "Webページの構造を作る",
+      "画像を加工する",
+      "OSを管理する"
+    ],
+    "c": 1,
+    "e": "HTMLはWebページの構造を記述します。"
+  },
+  {
+    "q": "【穴埋め】日本語のページで、htmlタグに入れる属性として適切なのは？",
+    "a": [
+      "language=\"jp\"",
+      "charset=\"ja\"",
+      "locale=\"jp\"",
+      "lang=\"ja\""
+    ],
+    "c": 3,
+    "cat": "HTML基礎"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "開始タグと終了タグ、その中身を含めたまとまりを何という？",
+    "a": [
+      "プロパティ",
+      "属性（attribute）",
+      "セレクタ",
+      "要素（element）"
+    ],
+    "c": 3,
+    "e": "HTMLの要素は開始タグ・内容・終了タグなどから構成されます。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "終了タグの基本的な書き方は？",
+    "a": [
+      "<p/>",
+      "<p end>",
+      "</p>",
+      "<end p>"
+    ],
+    "c": 2,
+    "e": "通常のHTML要素の終了タグにはスラッシュを付けます。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "属性（attribute）の役割は？",
+    "a": [
+      "ページを保存する",
+      "CSSを削除する",
+      "要素に追加情報を指定する",
+      "HTMLを終了する"
+    ],
+    "c": 2,
+    "e": "属性はhref、src、classなどの追加情報を指定します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "属性値とは？",
+    "a": [
+      "属性に設定する具体的な値",
+      "HTMLファイル名",
+      "CSSのコメント",
+      "タグの名前"
+    ],
+    "c": 0,
+    "e": "href=\"index.html\"ならindex.htmlが属性値です。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "<!DOCTYPE html>の役割は？",
+    "a": [
+      "CSSを読み込む",
+      "画像を表示する",
+      "リンクを作る",
+      "HTML文書のDOCTYPEを宣言する"
+    ],
+    "c": 3,
+    "e": "HTML5では通常、先頭にDOCTYPEを記述します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "HTML文書全体を囲むルート要素は？",
+    "a": [
+      "<root>",
+      "<main>",
+      "<html>",
+      "<body>"
+    ],
+    "c": 2,
+    "e": "<html>がHTML文書のルート要素です。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "ページの設定情報などを書く場所は？",
+    "a": [
+      "<main>",
+      "<footer>",
+      "<head>",
+      "<body>"
+    ],
+    "c": 2,
+    "e": "<head>にはtitle、meta、CSSへのリンクなどを記述します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "画面に表示する本文などを書く場所は？",
+    "a": [
+      "<body>",
+      "<title>",
+      "<meta>",
+      "<head>"
+    ],
+    "c": 0,
+    "e": "ユーザーが見る本文は基本的に<body>内に記述します。"
+  },
+  {
+    "q": "【穴埋め】文字コードをUTF-8に指定するコードとして正しいのは？",
+    "a": [
+      "<meta charset=\"UTF-8\">",
+      "<meta utf=\"8\">",
+      "<charset=\"UTF-8\">",
+      "<meta code=\"UTF-8\">"
+    ],
+    "c": 0,
+    "cat": "HTML基礎"
+  },
+  {
+    "q": "【穴埋め】HTML文書の最初に記述し、HTML5であることを宣言するコードは？",
+    "a": [
+      "<!DOCTYPE html>",
+      "<html5>",
+      "<doctype html>",
+      "<html version=\"5\">"
+    ],
+    "c": 0,
+    "cat": "HTML基礎"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "lang=\"ja\"の意味は？",
+    "a": [
+      "文字コードをUTF-8にする",
+      "JavaScriptを有効にする",
+      "文書の言語が日本語であることを示す",
+      "日本語フォントを指定する"
+    ],
+    "c": 2,
+    "e": "lang属性は文書や要素の言語を示します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "HTMLのコメントの書き方は？",
+    "a": [
+      "## コメント",
+      "// コメント",
+      "<!-- コメント -->",
+      "/* コメント */"
+    ],
+    "c": 2,
+    "e": "HTMLのコメントは<!-- -->で囲みます。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "Webページを閲覧するためのソフトは？",
+    "a": [
+      "コンパイラ",
+      "Webブラウザ",
+      "データベース",
+      "OS"
+    ],
+    "c": 1,
+    "e": "ChromeやSafariなどのWebブラウザでHTMLを表示します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "URLは主に何を表す？",
+    "a": [
+      "Web上の場所を示すアドレス",
+      "CSSの色",
+      "画像のサイズ",
+      "HTMLのタグ名"
+    ],
+    "c": 0,
+    "e": "URLはWeb上の場所を示すアドレスです。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "ハイパーリンクとは？",
+    "a": [
+      "HTMLを暗号化する仕組み",
+      "別のページや場所へ移動できる仕組み",
+      "画像を圧縮する仕組み",
+      "CSSを計算する仕組み"
+    ],
+    "c": 1,
+    "e": "リンクをクリックすると別のページや場所へ移動できます。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "相対URLとは？",
+    "a": [
+      "必ずhttpsから始まるURL",
+      "IPアドレスだけのURL",
+      "ドメイン名を使わないURL",
+      "現在の場所を基準にしたURL"
+    ],
+    "c": 3,
+    "e": "現在のページなどを基準にファイルの場所を指定します。"
+  },
+  {
+    "cat": "HTML基礎",
+    "q": "絶対URLとは？",
+    "a": [
+      "画像専用URL",
+      "ファイル名だけの指定",
+      "https://などから始まる完全なURL",
+      "CSSだけで使えるURL"
+    ],
+    "c": 2,
+    "e": "ドメインなどを含め、場所を完全に指定するURLです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "見出しを表すHTMLタグは？",
+    "a": [
+      "<title>",
+      "<head>",
+      "<p>",
+      "<h1>〜<h6>"
+    ],
+    "c": 3,
+    "e": "h1が最も大きな階層の見出しで、h6まであります。"
+  },
+  {
+    "q": "【穴埋め】大見出しを表すタグを入れてください。\n<h1>HTMLの基本</h1>",
+    "a": [
+      "<h6>",
+      "<h1>",
+      "<p>",
+      "<strong>"
+    ],
+    "c": 1,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "改行を表すHTMLタグは？",
+    "a": [
+      "<break>",
+      "<p>",
+      "<br>",
+      "<hr>"
+    ],
+    "c": 2,
+    "e": "<br>は改行を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "テーマの区切りなどを表すHTMLタグは？",
+    "a": [
+      "<br>",
+      "<line>",
+      "<hr>",
+      "<border>"
+    ],
+    "c": 2,
+    "e": "<hr>はテーマの区切りなどを表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "リンクを作るHTMLタグは？",
+    "a": [
+      "<href>",
+      "<link>",
+      "<url>",
+      "<a>"
+    ],
+    "c": 3,
+    "e": "<a>はアンカー要素です。"
+  },
+  {
+    "q": "【穴埋め】画像を表示するタグを入れてください。\n○○ src=\"cat.jpg\" alt=\"猫\">",
+    "a": [
+      "<img>",
+      "<image>",
+      "<src>",
+      "<picture>"
+    ],
+    "c": 0,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "図や画像などをまとめるHTMLタグは？",
+    "a": [
+      "<imagebox>",
+      "<graphic>",
+      "<fig>",
+      "<figure>"
+    ],
+    "c": 3,
+    "e": "<figure>は図や画像などをまとめるのに使えます。"
+  },
+  {
+    "q": "【穴埋め】リンクを作るタグを入れてください。\n○○ href=\"https://example.com\">サイトへ○○",
+    "a": [
+      "<link> と </link>",
+      "<a> と </a>",
+      "<url> と </url>",
+      "<href> と </href>"
+    ],
+    "c": 1,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "順序のないリストを作るHTMLタグは？",
+    "a": [
+      "<ol>",
+      "<ul>",
+      "<li>",
+      "<list>"
+    ],
+    "c": 1,
+    "e": "<ul>は順序なしリストです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "順序のあるリストを作るHTMLタグは？",
+    "a": [
+      "<ol>",
+      "<order>",
+      "<li>",
+      "<ul>"
+    ],
+    "c": 0,
+    "e": "<ol>は順序付きリストです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "リストの各項目を表すHTMLタグは？",
+    "a": [
+      "<li>",
+      "<item>",
+      "<ul>",
+      "<list-item>"
+    ],
+    "c": 0,
+    "e": "<li>はリスト項目を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "説明リストを作るHTMLタグは？",
+    "a": [
+      "<description>",
+      "<dl>",
+      "<define>",
+      "<list>"
+    ],
+    "c": 1,
+    "e": "<dl>は説明リストです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "説明リストの用語を表すHTMLタグは？",
+    "a": [
+      "<define>",
+      "<term>",
+      "<dt>",
+      "<dd>"
+    ],
+    "c": 2,
+    "e": "<dt>は説明リストの用語です。"
+  },
+  {
+    "q": "【穴埋め】段落を表すタグを入れてください。\n○○これは段落です○○",
+    "a": [
+      "<p> と </p>",
+      "<br> と </br>",
+      "<span> と </span>",
+      "<div> と </div>"
+    ],
+    "c": 0,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表全体を作るHTMLタグは？",
+    "a": [
+      "<tab>",
+      "<sheet>",
+      "<table>",
+      "<grid>"
+    ],
+    "c": 2,
+    "e": "<table>は表全体を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表のタイトル・キャプションを表すHTMLタグは？",
+    "a": [
+      "<caption>",
+      "<title>",
+      "<table-title>",
+      "<label>"
+    ],
+    "c": 0,
+    "e": "<caption>はtableのキャプションです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表のヘッダー部分をまとめるHTMLタグは？",
+    "a": [
+      "<thead>",
+      "<th>",
+      "<table-head>",
+      "<header-row>"
+    ],
+    "c": 0,
+    "e": "<thead>は表のヘッダー部分をまとめます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表の本文部分をまとめるHTMLタグは？",
+    "a": [
+      "<td>",
+      "<tbody>",
+      "<table-body>",
+      "<body-row>"
+    ],
+    "c": 1,
+    "e": "<tbody>は表の本体部分をまとめます。"
+  },
+  {
+    "q": "【穴埋め】表の見出しセルを表すタグを入れてください。\n○○商品名○○",
+    "a": [
+      "<thead> と </thead>",
+      "<header> と </header>",
+      "<th> と </th>",
+      "<td> と </td>"
+    ],
+    "c": 2,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表の行を表すHTMLタグは？",
+    "a": [
+      "<th>",
+      "<td>",
+      "<tr>",
+      "<row>"
+    ],
+    "c": 2,
+    "e": "<tr>はtable rowです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表の見出しセルを表すHTMLタグは？",
+    "a": [
+      "<thead-cell>",
+      "<td>",
+      "<th>",
+      "<header>"
+    ],
+    "c": 2,
+    "e": "<th>はtable header cellです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "表の通常のデータセルを表すHTMLタグは？",
+    "a": [
+      "<cell>",
+      "<th>",
+      "<td>",
+      "<data>"
+    ],
+    "c": 2,
+    "e": "<td>はtable data cellです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "フォームを作るHTMLタグは？",
+    "a": [
+      "<form>",
+      "<field>",
+      "<data>",
+      "<input>"
+    ],
+    "c": 0,
+    "e": "<form>は入力項目をまとめます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "フォーム部品のラベルを表すHTMLタグは？",
+    "a": [
+      "<label>",
+      "<caption>",
+      "<title>",
+      "<name>"
+    ],
+    "c": 0,
+    "e": "<label>はフォーム部品の説明・ラベルに使います。"
+  },
+  {
+    "q": "【穴埋め】フォームの送信ボタンを作るタグを入れてください。\n○○ type=\"submit\">送信○○",
+    "a": [
+      "<button> と </button>",
+      "<input> と </input>",
+      "<form> と </form>",
+      "<submit> と </submit>"
+    ],
+    "c": 0,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "複数行の入力欄を作るHTMLタグは？",
+    "a": [
+      "<text-area>",
+      "<textarea>",
+      "<input>",
+      "<multitext>"
+    ],
+    "c": 1,
+    "e": "<textarea>は複数行の入力に使います。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "選択肢の一覧を作るHTMLタグは？",
+    "a": [
+      "<option>",
+      "<dropdown>",
+      "<choice>",
+      "<select>"
+    ],
+    "c": 3,
+    "e": "<select>の中にoptionを配置します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "選択肢を表すHTMLタグは？",
+    "a": [
+      "<option>",
+      "<item>",
+      "<choice>",
+      "<select-item>"
+    ],
+    "c": 0,
+    "e": "<option>はselect内の選択肢です。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "ボタンを作るHTMLタグは？",
+    "a": [
+      "<btn>",
+      "<input-button>",
+      "<button>",
+      "<click>"
+    ],
+    "c": 2,
+    "e": "<button>はボタン要素です。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "関連するフォーム部品をグループ化するHTMLタグは？",
+    "a": [
+      "<formgroup>",
+      "<fieldset>",
+      "<group>",
+      "<set>"
+    ],
+    "c": 1,
+    "e": "<fieldset>で関連するフォーム部品をグループ化できます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "fieldsetの説明を表すHTMLタグは？",
+    "a": [
+      "<title>",
+      "<fieldset-title>",
+      "<legend>",
+      "<caption>"
+    ],
+    "c": 2,
+    "e": "<legend>はfieldsetの説明を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "ヘッダー部分を表すHTMLタグは？",
+    "a": [
+      "<top>",
+      "<heading>",
+      "<head>",
+      "<header>"
+    ],
+    "c": 3,
+    "e": "<header>は導入部分などのヘッダーを表します。"
+  },
+  {
+    "q": "【穴埋め】複数行の入力欄を作るタグを入れてください。\n○○お問い合わせ内容○○",
+    "a": [
+      "<text> と </text>",
+      "<textarea> と </textarea>",
+      "<multitext> と </multitext>",
+      "<input> と </input>"
+    ],
+    "c": 1,
+    "cat": "HTMLタグ"
+  },
+  {
+    "q": "【穴埋め】順序のないリストを作る外側のタグを入れてください。\n○○\n  <li>りんご</li>\n  <li>みかん</li>\n○○",
+    "a": [
+      "<ul> と </ul>",
+      "<ol> と </ol>",
+      "<li> と </li>",
+      "<list> と </list>"
+    ],
+    "c": 0,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "文書の意味的なまとまりを表すHTMLタグは？",
+    "a": [
+      "<group>",
+      "<part>",
+      "<section>",
+      "<area>"
+    ],
+    "c": 2,
+    "e": "<section>は文書の意味的なまとまりを表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "独立した記事・コンテンツを表すHTMLタグは？",
+    "a": [
+      "<content>",
+      "<story>",
+      "<post>",
+      "<article>"
+    ],
+    "c": 3,
+    "e": "<article>は独立したコンテンツに使います。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "補足・関連情報を表すHTMLタグは？",
+    "a": [
+      "<extra>",
+      "<aside>",
+      "<side>",
+      "<sub>"
+    ],
+    "c": 1,
+    "e": "<aside>は補足・関連情報などを表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "フッター部分を表すHTMLタグは？",
+    "a": [
+      "<foot>",
+      "<end>",
+      "<footer>",
+      "<bottom>"
+    ],
+    "c": 2,
+    "e": "<footer>はフッター部分を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "汎用的なブロック要素として使うHTMLタグは？",
+    "a": [
+      "<container>",
+      "<box>",
+      "<section>",
+      "<div>"
+    ],
+    "c": 3,
+    "e": "<div>は汎用的なブロックコンテナです。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "文章の一部などをまとめるインラインHTMLタグは？",
+    "a": [
+      "<span>",
+      "<inline>",
+      "<small>",
+      "<text>"
+    ],
+    "c": 0,
+    "e": "<span>は汎用的なインラインコンテナです。"
+  },
+  {
+    "q": "【穴埋め】入力欄を作るタグを入れてください。\n○○ type=\"text\" name=\"name\">",
+    "a": [
+      "<field>",
+      "<input>",
+      "<text>",
+      "<inputbox>"
+    ],
+    "c": 1,
+    "cat": "HTMLタグ"
+  },
+  {
+    "q": "【穴埋め】表の1行を表すタグを入れてください。\n○○\n  <td>りんご</td>\n○○",
+    "a": [
+      "<tr> と </tr>",
+      "<th> と </th>",
+      "<td> と </td>",
+      "<row> と </row>"
+    ],
+    "c": 0,
+    "cat": "HTMLタグ"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "注記などの副次的な内容を表すHTMLタグは？",
+    "a": [
+      "<note>",
+      "<tiny>",
+      "<small>",
+      "<mini>"
+    ],
+    "c": 2,
+    "e": "<small>は注記などの副次的な内容に使えます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "文章の一部を目立たせるHTMLタグは？",
+    "a": [
+      "<em>",
+      "<mark>",
+      "<highlight>",
+      "<yellow>"
+    ],
+    "c": 1,
+    "e": "<mark>は文脈上関連する部分を目立たせます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "削除された内容を表すHTMLタグは？",
+    "a": [
+      "<delete>",
+      "<remove>",
+      "<strike>",
+      "<del>"
+    ],
+    "c": 3,
+    "e": "<del>は削除された内容を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "追加・挿入された内容を表すHTMLタグは？",
+    "a": [
+      "<new>",
+      "<add>",
+      "<ins>",
+      "<insert>"
+    ],
+    "c": 2,
+    "e": "<ins>は追加・挿入された内容を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "下付き文字を表すHTMLタグは？",
+    "a": [
+      "<sub>",
+      "<bottom>",
+      "<lower>",
+      "<small>"
+    ],
+    "c": 0,
+    "e": "<sub>は下付き文字です。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "上付き文字を表すHTMLタグは？",
+    "a": [
+      "<small>",
+      "<upper>",
+      "<sup>",
+      "<top>"
+    ],
+    "c": 2,
+    "e": "<sup>は上付き文字です。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "音声を埋め込むHTMLタグは？",
+    "a": [
+      "<audio>",
+      "<music>",
+      "<sound>",
+      "<voice>"
+    ],
+    "c": 0,
+    "e": "<audio>は音声コンテンツを埋め込みます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "動画を埋め込むHTMLタグは？",
+    "a": [
+      "<media>",
+      "<film>",
+      "<movie>",
+      "<video>"
+    ],
+    "c": 3,
+    "e": "<video>は動画コンテンツを埋め込みます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "音声・動画などのメディア候補を指定するHTMLタグは？",
+    "a": [
+      "<media-source>",
+      "<file>",
+      "<source>",
+      "<src>"
+    ],
+    "c": 2,
+    "e": "<source>でメディアファイルの候補を指定できます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "別のWebページなどを埋め込むHTMLタグは？",
+    "a": [
+      "<embed-page>",
+      "<window>",
+      "<frame>",
+      "<iframe>"
+    ],
+    "c": 3,
+    "e": "<iframe>で別のWebページなどを埋め込めます。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "開閉できる詳細情報を表すHTMLタグは？",
+    "a": [
+      "<details>",
+      "<accordion>",
+      "<extra>",
+      "<toggle>"
+    ],
+    "c": 0,
+    "e": "<details>は開閉可能な詳細情報を表します。"
+  },
+  {
+    "cat": "HTMLタグ",
+    "q": "detailsの概要・見出しを表すHTMLタグは？",
+    "a": [
+      "<title>",
+      "<heading>",
+      "<caption>",
+      "<summary>"
+    ],
+    "c": 3,
+    "e": "<summary>をクリックしてdetailsを開閉できます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "リンク先を指定する属性は？",
+    "a": [
+      "href",
+      "alt",
+      "src",
+      "target"
+    ],
+    "c": 0,
+    "e": "hrefは<a>などでリンク先を指定します。"
+  },
+  {
+    "q": "【穴埋め】リンク先を指定する属性を入れてください。\n<a ○○=\"https://example.com\">リンク</a>",
+    "a": [
+      "url",
+      "link",
+      "src",
+      "href"
+    ],
+    "c": 3,
+    "cat": "HTML属性"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "画像の代替テキストを指定する属性は？",
+    "a": [
+      "title",
+      "text",
+      "caption",
+      "alt"
+    ],
+    "c": 3,
+    "e": "altは画像の代替テキストです。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "要素に一意の識別子を付ける属性は？",
+    "a": [
+      "name",
+      "class",
+      "id",
+      "key"
+    ],
+    "c": 2,
+    "e": "idは文書内で要素を識別するために使います。"
+  },
+  {
+    "q": "【穴埋め】画像ファイルの場所を指定する属性を入れてください。\n<img ○○=\"cat.jpg\" alt=\"猫\">",
+    "a": [
+      "src",
+      "path",
+      "href",
+      "file"
+    ],
+    "c": 0,
+    "cat": "HTML属性"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "<input>の入力タイプを指定する属性は？",
+    "a": [
+      "type",
+      "mode",
+      "input-type",
+      "kind"
+    ],
+    "c": 0,
+    "e": "typeでtext、checkbox、radioなどを指定します。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "フォーム部品の名前を指定する属性は？",
+    "a": [
+      "title",
+      "name",
+      "label",
+      "field"
+    ],
+    "c": 1,
+    "e": "nameは送信データの名前などに使われます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "入力欄にヒントを表示する属性は？",
+    "a": [
+      "value",
+      "hint",
+      "placeholder",
+      "message"
+    ],
+    "c": 2,
+    "e": "placeholderは入力前のヒントを表示します。"
+  },
+  {
+    "q": "【穴埋め】複数の要素に同じ種類を設定するために使う属性を入れてください。\n<div ○○=\"box\">...</div>",
+    "a": [
+      "id",
+      "type",
+      "group",
+      "class"
+    ],
+    "c": 3,
+    "cat": "HTML属性"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "入力部品を無効にする属性は？",
+    "a": [
+      "disabled",
+      "inactive",
+      "off",
+      "disable"
+    ],
+    "c": 0,
+    "e": "disabledで操作できない状態にできます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "チェックボックスなどを初期選択状態にする属性は？",
+    "a": [
+      "checked",
+      "check",
+      "active",
+      "selected"
+    ],
+    "c": 0,
+    "e": "checkedはcheckboxやradioなどで使います。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "<option>を初期選択状態にする属性は？",
+    "a": [
+      "checked",
+      "selected",
+      "default",
+      "active"
+    ],
+    "c": 1,
+    "e": "selectedはselectのoptionで使います。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "入力欄の初期値を指定する属性は？",
+    "a": [
+      "value",
+      "default",
+      "text",
+      "initial"
+    ],
+    "c": 0,
+    "e": "valueでフォーム部品の値を指定できます。"
+  },
+  {
+    "q": "【穴埋め】入力を必須にする属性を入れてください。\n<input type=\"text\" ○○>",
+    "a": [
+      "required",
+      "necessary",
+      "validate",
+      "must"
+    ],
+    "c": 0,
+    "cat": "HTML属性"
+  },
+  {
+    "q": "【穴埋め】画像の代替テキストを指定する属性を入れてください。\n<img src=\"cat.jpg\" ○○=\"猫\">",
+    "a": [
+      "description",
+      "alt",
+      "title",
+      "text"
+    ],
+    "c": 1,
+    "cat": "HTML属性"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "HTML要素に直接CSSを書く属性は？",
+    "a": [
+      "design",
+      "style",
+      "css",
+      "format"
+    ],
+    "c": 1,
+    "e": "style属性でインラインCSSを指定できます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "要素に補足情報を設定する属性は？",
+    "a": [
+      "tooltip",
+      "hint",
+      "title",
+      "info"
+    ],
+    "c": 2,
+    "e": "title属性は補足的な情報を提供します。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "<label>とフォーム部品を関連付ける属性は？",
+    "a": [
+      "for",
+      "target",
+      "link",
+      "connect"
+    ],
+    "c": 0,
+    "e": "forの値をフォーム部品のidに合わせます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "リンクをどこで開くか指定する属性は？",
+    "a": [
+      "window",
+      "target",
+      "open",
+      "location"
+    ],
+    "c": 1,
+    "e": "targetで_selfや_blankなどを指定できます。"
+  },
+  {
+    "cat": "HTML属性",
+    "q": "画像の幅を指定できるHTML属性は？",
+    "a": [
+      "scale",
+      "width",
+      "length",
+      "size"
+    ],
+    "c": 1,
+    "e": "width属性で画像などの幅を指定できます。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSは何の略？",
+    "a": [
+      "Cascading Style Sheets",
+      "Computer Style System",
+      "Color Style Sheet",
+      "Creative Style Syntax"
+    ],
+    "c": 0,
+    "e": "CSSはCascading Style Sheetsの略です。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSでスタイルを適用する対象を指定する部分は？",
+    "a": [
+      "プロパティ",
+      "セレクタ",
+      "宣言",
+      "値"
+    ],
+    "c": 1,
+    "e": "セレクタでどのHTML要素にスタイルを適用するか指定します。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSで色や幅など、設定する項目を表すものは？",
+    "a": [
+      "値",
+      "タグ",
+      "プロパティ",
+      "セレクタ"
+    ],
+    "c": 2,
+    "e": "colorやwidthなどがプロパティです。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSのpropertyに設定する具体的な内容は？",
+    "a": [
+      "要素",
+      "値（value）",
+      "タグ",
+      "セレクタ"
+    ],
+    "c": 1,
+    "e": "color:redならredが値です。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSでproperty:value;の1組を何という？",
+    "a": [
+      "属性",
+      "要素",
+      "宣言",
+      "セレクタ"
+    ],
+    "c": 2,
+    "e": "プロパティと値の組み合わせが宣言です。"
+  },
+  {
+    "q": "【穴埋め】要素の前に内容を追加する疑似要素は？\n.box○○ { content: \"★\"; }",
+    "a": [
+      ":before",
+      "::before",
+      ":first",
+      "::front"
+    ],
+    "c": 1,
+    "cat": "CSS基礎"
+  },
+  {
+    "q": "【穴埋め】クラス名boxを指定するセレクタは？\n○○ { width: 100px; }",
+    "a": [
+      ".box",
+      "#box",
+      "box",
+      "*box"
+    ],
+    "c": 0,
+    "cat": "CSS基礎"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "要素の配置方法を指定するプロパティは？",
+    "a": [
+      "location",
+      "layout-position",
+      "place",
+      "position"
+    ],
+    "c": 3,
+    "e": "static、relative、absolute、fixed、stickyなどがあります。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSの継承とは？",
+    "a": [
+      "親要素の一部のスタイルが子要素にも受け継がれること",
+      "親要素を削除すること",
+      "CSSをHTMLに変換すること",
+      "すべてのプロパティが必ず受け継がれること"
+    ],
+    "c": 0,
+    "e": "プロパティによって継承されるものとされないものがあります。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSのカスケードとは？",
+    "a": [
+      "CSSを圧縮する方法",
+      "HTMLを画像化する仕組み",
+      "複数のスタイル指定から適用されるルールを決める仕組み",
+      "ブラウザを閉じる機能"
+    ],
+    "c": 2,
+    "e": "CSSでは優先順位などに基づいて適用されるスタイルが決まります。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "specificity（詳細度）は何に関係する？",
+    "a": [
+      "画像サイズ",
+      "通信速度",
+      "HTMLファイル容量",
+      "複数のセレクタが競合したときの優先度"
+    ],
+    "c": 3,
+    "e": "詳細度は競合するスタイルの優先順位を決める要素です。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "!importantの役割は？",
+    "a": [
+      "HTMLを削除する",
+      "色を固定する",
+      "CSSを無効にする",
+      "その宣言の優先度を強くする"
+    ],
+    "c": 3,
+    "e": "!importantは通常のカスケードより強い優先度を持たせるために使います。"
+  },
+  {
+    "q": "【穴埋め】idがheaderの要素を指定するセレクタは？\n○○ { height: 60px; }",
+    "a": [
+      "header",
+      ".header",
+      "#header",
+      "@header"
+    ],
+    "c": 2,
+    "cat": "CSS基礎"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSのcalc()は何に使う？",
+    "a": [
+      "HTMLを計算する",
+      "画像を切り抜く",
+      "CSSの値を計算する",
+      "CSSを圧縮する"
+    ],
+    "c": 2,
+    "e": "calc()で異なる単位を含む値などを計算できます。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSのルールは基本的にどのような形で書く？",
+    "a": [
+      "タグ = 値",
+      "CSS(値,タグ)",
+      "セレクタ { プロパティ: 値; }",
+      "プロパティ -> HTML"
+    ],
+    "c": 2,
+    "e": "セレクタで対象を指定し、波括弧内にプロパティと値を記述します。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSの宣言ブロックを表す記号は？",
+    "a": [
+      "{ }",
+      "( )",
+      "< >",
+      "[ ]"
+    ],
+    "c": 0,
+    "e": "CSSでは宣言を{ }で囲みます。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "CSSファイルの一般的な拡張子は？",
+    "a": [
+      ".css",
+      ".style",
+      ".cs",
+      ".html"
+    ],
+    "c": 0,
+    "e": ".cssがCSSファイルの一般的な拡張子です。"
+  },
+  {
+    "cat": "CSS基礎",
+    "q": "外部CSSをHTMLから読み込む代表的な方法は？",
+    "a": [
+      "img要素で読み込む",
+      "CSSをbodyに貼る",
+      "link要素でstylesheetを指定する",
+      "scriptだけで読み込む"
+    ],
+    "c": 2,
+    "e": "link rel=\"stylesheet\" href=\"style.css\"などで読み込みます。"
+  },
+  {
+    "q": "【穴埋め】文字色を赤にするCSSコードの空欄に入るものは？\np { ○○: red; }",
+    "a": [
+      "color",
+      "text-color",
+      "foreground",
+      "font-color"
+    ],
+    "c": 0,
+    "cat": "CSS基礎"
+  },
+  {
+    "q": "【穴埋め】マウスを乗せたときのスタイルを指定する記述は？\na○○ { color: red; }",
+    "a": [
+      ":mouse",
+      ":hover",
+      "::hover",
+      "@hover"
+    ],
+    "c": 1,
+    "cat": "CSS基礎"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "文字色を指定するCSSプロパティは？",
+    "a": [
+      "font-color",
+      "foreground",
+      "color",
+      "text-color"
+    ],
+    "c": 2,
+    "e": "colorで文字色を指定します。"
+  },
+  {
+    "q": "【穴埋め】要素を透明にする度合いを指定するプロパティは？\n.box { ○○: 0.5; }",
+    "a": [
+      "transparent",
+      "opacity",
+      "visibility",
+      "alpha"
+    ],
+    "c": 1,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "背景画像を指定するプロパティは？",
+    "a": [
+      "bg-image-url",
+      "image-background",
+      "background-image",
+      "background-picture"
+    ],
+    "c": 2,
+    "e": "background-imageで背景画像を指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "文字の大きさを指定するプロパティは？",
+    "a": [
+      "font-height",
+      "font-size",
+      "text-size",
+      "size"
+    ],
+    "c": 1,
+    "e": "font-sizeで文字サイズを指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "文字の太さを指定するプロパティは？",
+    "a": [
+      "font-weight",
+      "font-bold",
+      "text-weight",
+      "weight"
+    ],
+    "c": 0,
+    "e": "font-weightで文字の太さを指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "使用するフォントを指定するプロパティは？",
+    "a": [
+      "font-type",
+      "font-family",
+      "text-family",
+      "typeface"
+    ],
+    "c": 1,
+    "e": "font-familyでフォントを指定します。"
+  },
+  {
+    "q": "【穴埋め】Flexboxを有効にするプロパティと値は？\n.container { ○○: flex; }",
+    "a": [
+      "display",
+      "position",
+      "layout",
+      "flex"
+    ],
+    "c": 0,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "行の高さを指定するプロパティは？",
+    "a": [
+      "line-height",
+      "text-height",
+      "row-height",
+      "font-line"
+    ],
+    "c": 0,
+    "e": "line-heightで行の高さを指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "文字の横方向の揃え方を指定するプロパティは？",
+    "a": [
+      "align-text",
+      "horizontal-text",
+      "font-align",
+      "text-align"
+    ],
+    "c": 3,
+    "e": "left、center、rightなどを指定できます。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "下線などの文字装飾を指定するプロパティは？",
+    "a": [
+      "decoration",
+      "text-style",
+      "font-decoration",
+      "text-decoration"
+    ],
+    "c": 3,
+    "e": "underlineなどを指定できます。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "文字間隔を指定するプロパティは？",
+    "a": [
+      "text-gap",
+      "word-spacing",
+      "letter-spacing",
+      "font-spacing"
+    ],
+    "c": 2,
+    "e": "文字と文字の間隔を指定します。"
+  },
+  {
+    "q": "【穴埋め】要素の内側の余白を指定するプロパティは？\n.box { ○○: 20px; }",
+    "a": [
+      "spacing",
+      "padding",
+      "inner",
+      "margin"
+    ],
+    "c": 1,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "q": "【穴埋め】角を丸くするプロパティは？\n.box { ○○: 10px; }",
+    "a": [
+      "border-round",
+      "radius",
+      "border-radius",
+      "corner-radius"
+    ],
+    "c": 2,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の外側の余白を指定するプロパティは？",
+    "a": [
+      "padding",
+      "border-space",
+      "outer-space",
+      "margin"
+    ],
+    "c": 3,
+    "e": "marginは要素の外側の余白です。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の内側の余白を指定するプロパティは？",
+    "a": [
+      "padding",
+      "content-space",
+      "inner-space",
+      "margin"
+    ],
+    "c": 0,
+    "e": "paddingは内容とborderの間の余白です。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の境界線を指定するプロパティは？",
+    "a": [
+      "outline-box",
+      "edge",
+      "line",
+      "border"
+    ],
+    "c": 3,
+    "e": "borderで境界線を指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "角を丸くするプロパティは？",
+    "a": [
+      "radius",
+      "corner-round",
+      "border-round",
+      "border-radius"
+    ],
+    "c": 3,
+    "e": "border-radiusで角丸を指定します。"
+  },
+  {
+    "q": "【穴埋め】Flexboxで横方向の配置を指定するプロパティは？\n.container { ○○: center; }",
+    "a": [
+      "place-content",
+      "align-items",
+      "text-align",
+      "justify-content"
+    ],
+    "c": 3,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "q": "【穴埋め】要素の表示方法を指定するプロパティは？\n.box { ○○: block; }",
+    "a": [
+      "display",
+      "visibility",
+      "layout",
+      "position"
+    ],
+    "c": 0,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の表示方法を指定するプロパティは？",
+    "a": [
+      "visible",
+      "display",
+      "show",
+      "render"
+    ],
+    "c": 1,
+    "e": "block、inline、flex、grid、noneなどを指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "Flexboxで主軸方向の配置を指定するプロパティは？",
+    "a": [
+      "flex-position",
+      "main-align",
+      "justify-content",
+      "align-items"
+    ],
+    "c": 2,
+    "e": "justify-contentは主軸方向の配置を指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "Flexboxで交差軸方向のアイテム配置を指定するプロパティは？",
+    "a": [
+      "justify-items",
+      "cross-position",
+      "align-content-x",
+      "align-items"
+    ],
+    "c": 3,
+    "e": "align-itemsは交差軸方向の配置を指定します。"
+  },
+  {
+    "q": "【穴埋め】文字の大きさを指定するプロパティは？\np { ○○: 16px; }",
+    "a": [
+      "font-size",
+      "size",
+      "text-size",
+      "font-height"
+    ],
+    "c": 0,
+    "cat": "CSSプロパティ"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "FlexboxやGridでアイテム間の間隔を指定するプロパティは？",
+    "a": [
+      "grid-space",
+      "item-margin",
+      "gap",
+      "space"
+    ],
+    "c": 2,
+    "e": "gapでアイテム間の間隔を指定できます。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "Gridの列のサイズ・構成を指定するプロパティは？",
+    "a": [
+      "grid-columns-size",
+      "grid-template-columns",
+      "columns-template",
+      "grid-x"
+    ],
+    "c": 1,
+    "e": "Gridの列構成を指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の配置方法を指定するプロパティは？",
+    "a": [
+      "place",
+      "position",
+      "layout-position",
+      "location"
+    ],
+    "c": 1,
+    "e": "static、relative、absolute、fixed、stickyなどがあります。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "重なり順を調整するプロパティは？",
+    "a": [
+      "depth",
+      "z-index",
+      "layer",
+      "stack-order"
+    ],
+    "c": 1,
+    "e": "z-indexで重なり順を調整します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "内容が要素の範囲からはみ出した場合の扱いを指定するプロパティは？",
+    "a": [
+      "overlap",
+      "content-flow",
+      "clip",
+      "overflow"
+    ],
+    "c": 3,
+    "e": "visible、hidden、scroll、autoなどがあります。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "要素の不透明度を指定するプロパティは？",
+    "a": [
+      "opacity",
+      "visibility",
+      "alpha-color",
+      "transparent"
+    ],
+    "c": 0,
+    "e": "opacityで不透明度を指定します。"
+  },
+  {
+    "cat": "CSSプロパティ",
+    "q": "マウスポインタの形状を指定するプロパティは？",
+    "a": [
+      "cursor",
+      "mouse-shape",
+      "mouse",
+      "pointer-style"
+    ],
+    "c": 0,
+    "e": "cursor:pointerなどで指定できます。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "CSSで.class名と書いて指定するセレクタは？",
+    "a": [
+      "idセレクタ",
+      "属性セレクタ",
+      "要素セレクタ",
+      "classセレクタ"
+    ],
+    "c": 3,
+    "e": ".sampleのように指定します。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "CSSで#id名と書いて指定するセレクタは？",
+    "a": [
+      "idセレクタ",
+      "子孫セレクタ",
+      "要素セレクタ",
+      "classセレクタ"
+    ],
+    "c": 0,
+    "e": "#sampleのように指定します。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "p { color:red; } のpは何？",
+    "a": [
+      "値",
+      "idセレクタ",
+      "classセレクタ",
+      "要素セレクタ"
+    ],
+    "c": 3,
+    "e": "HTML要素名をそのまま指定するセレクタです。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "CSSで*を使ってすべての要素を対象にするセレクタは？",
+    "a": [
+      "ワイルドタグ",
+      "全体プロパティ",
+      "全称セレクタ",
+      "属性セレクタ"
+    ],
+    "c": 2,
+    "e": "*は全称セレクタです。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "div p のように空白で区切るセレクタは？",
+    "a": [
+      "隣接セレクタ",
+      "子孫セレクタ",
+      "子セレクタ",
+      "兄弟セレクタ"
+    ],
+    "c": 1,
+    "e": "divの中にあるpなど子孫を指定します。"
+  },
+  {
+    "q": "【穴埋め】class=\"menu\"の要素を指定するセレクタは？\n○○ { color: red; }",
+    "a": [
+      "*menu",
+      "#menu",
+      ".menu",
+      "menu"
+    ],
+    "c": 2,
+    "cat": "CSSセレクタ"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": ":hoverなどのようなものを何という？",
+    "a": [
+      "メディアクエリ",
+      "疑似要素",
+      "疑似クラス",
+      "属性"
+    ],
+    "c": 2,
+    "e": "hoverやfocusなど要素の状態などを表します。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "::beforeや::afterを何という？",
+    "a": [
+      "疑似クラス",
+      "変数",
+      "属性セレクタ",
+      "疑似要素"
+    ],
+    "c": 3,
+    "e": "疑似要素は要素の一部などを仮想的に表現します。"
+  },
+  {
+    "q": "【穴埋め】divの子要素であるpだけを指定するセレクタは？\n○○ { color: red; }",
+    "a": [
+      "div > p",
+      "div + p",
+      "div ~ p",
+      "div p"
+    ],
+    "c": 0,
+    "cat": "CSSセレクタ"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": ":focusは主にどんな状態？",
+    "a": [
+      "要素が削除された状態",
+      "ページが閉じた状態",
+      "要素がフォーカスを受けている状態",
+      "マウスが離れた状態"
+    ],
+    "c": 2,
+    "e": "入力欄などがフォーカスされた状態です。"
+  },
+  {
+    "q": "【穴埋め】id=\"menu\"の要素を指定するセレクタは？\n○○ { color: red; }",
+    "a": [
+      "#menu",
+      ".menu",
+      "menu",
+      "@menu"
+    ],
+    "c": 0,
+    "cat": "CSSセレクタ"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "[type=\"text\"]のような指定を何という？",
+    "a": [
+      "idセレクタ",
+      "classセレクタ",
+      "要素セレクタ",
+      "属性セレクタ"
+    ],
+    "c": 3,
+    "e": "属性セレクタは属性や属性値を条件に要素を選択します。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": ":nth-child(2)のような指定は何に使う？",
+    "a": [
+      "画像を選択する",
+      "兄弟要素の順番などで選択する疑似クラス",
+      "属性を指定する",
+      "CSS変数を定義する"
+    ],
+    "c": 1,
+    "e": ":nth-child()は兄弟関係にある要素の順番を条件にできます。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "h2 + p の+が表す関係は？",
+    "a": [
+      "直下の子要素",
+      "親要素",
+      "直後の兄弟要素",
+      "すべての子孫"
+    ],
+    "c": 2,
+    "e": "+は直後にある兄弟要素を指定します。"
+  },
+  {
+    "cat": "CSSセレクタ",
+    "q": "h2 ~ p の~が表す関係は？",
+    "a": [
+      "直下の子要素",
+      "後ろにある兄弟要素",
+      "直後の兄弟だけ",
+      "親要素"
+    ],
+    "c": 1,
+    "e": "~は同じ親を持つ後続の兄弟要素を指定します。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "pxはどんなCSS単位？",
+    "a": [
+      "画面幅の割合",
+      "親要素の文字サイズ単位",
+      "画面高さの割合",
+      "ピクセルを基準とする単位"
+    ],
+    "c": 3,
+    "e": "pxはCSSでよく使われる長さの単位です。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "%は主に何を表す単位？",
+    "a": [
+      "関連する基準値に対する割合",
+      "必ず文字サイズ",
+      "必ず画面幅",
+      "必ず1px"
+    ],
+    "c": 0,
+    "e": "プロパティによって基準は異なりますが割合を表します。"
+  },
+  {
+    "q": "【穴埋め】画面の横幅の50%を表す単位は？\n.box { width: ○○; }",
+    "a": [
+      "50px",
+      "50vw",
+      "50vh",
+      "50%w"
+    ],
+    "c": 1,
+    "cat": "CSS値・単位"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "remは何を基準とする相対単位？",
+    "a": [
+      "ルート要素のフォントサイズ",
+      "ビューポート高さ",
+      "画像サイズ",
+      "親要素の幅"
+    ],
+    "c": 0,
+    "e": "remは通常html要素のフォントサイズを基準にします。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "vwは何の1%を表す？",
+    "a": [
+      "親要素の幅",
+      "文字サイズ",
+      "要素の高さ",
+      "ビューポートの幅"
+    ],
+    "c": 3,
+    "e": "1vwはビューポート幅の1%です。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "vhは何の1%を表す？",
+    "a": [
+      "親要素の高さ",
+      "ビューポートの高さ",
+      "要素の幅",
+      "文字サイズ"
+    ],
+    "c": 1,
+    "e": "1vhはビューポート高さの1%です。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "width:autoのautoは何を意味する？",
+    "a": [
+      "状況に応じた自動計算・自動調整",
+      "要素を非表示",
+      "画面幅100%",
+      "必ず0px"
+    ],
+    "c": 0,
+    "e": "autoはプロパティに応じてブラウザが値を自動計算します。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "display:noneのnoneは何を意味する？",
+    "a": [
+      "透明にするだけ",
+      "表示しない",
+      "文字色を消す",
+      "幅を自動にする"
+    ],
+    "c": 1,
+    "e": "display:noneでは要素がレイアウト上も表示されません。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "display:flexのflexは何を表す？",
+    "a": [
+      "固定配置",
+      "Flexboxレイアウト",
+      "表レイアウト",
+      "Gridレイアウト"
+    ],
+    "c": 1,
+    "e": "display:flexでFlexboxコンテナになります。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "display:gridのgridは何を表す？",
+    "a": [
+      "表計算",
+      "Flexboxレイアウト",
+      "画像レイアウト",
+      "Gridレイアウト"
+    ],
+    "c": 3,
+    "e": "display:gridでCSS Gridコンテナになります。"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "font-weight:boldのboldは何を表す？",
+    "a": [
+      "小さい文字",
+      "斜体",
+      "太い文字",
+      "下線"
+    ],
+    "c": 2,
+    "e": "boldは太い文字を表すキーワードです。"
+  },
+  {
+    "q": "【穴埋め】親要素の文字サイズを基準に2倍にする値は？\np { font-size: ○○; }",
+    "a": [
+      "2em",
+      "2px",
+      "200px",
+      "2rem"
+    ],
+    "c": 0,
+    "cat": "CSS値・単位"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "border:1px solid red のsolidは？",
+    "a": [
+      "実線",
+      "点線",
+      "透明",
+      "二重線"
+    ],
+    "c": 0,
+    "e": "solidは実線を表すborder-styleの値です。"
+  },
+  {
+    "q": "【穴埋め】ルート要素の文字サイズを基準に2倍にする値は？\np { font-size: ○○; }",
+    "a": [
+      "2rem",
+      "200%",
+      "2em",
+      "2px"
+    ],
+    "c": 0,
+    "cat": "CSS値・単位"
+  },
+  {
+    "cat": "CSS値・単位",
+    "q": "color:inheritのinheritは？",
+    "a": [
+      "初期値に戻す",
+      "値を削除する",
+      "親要素から値を継承する",
+      "自動計算する"
+    ],
+    "c": 2,
+    "e": "inheritは親要素の計算値を継承します。"
+  }
+];
+let currentSet=[...questions],index=0,score=0,answered=false,history=[];
+const categories=["すべて",...new Set(questions.map(x=>x.cat))];
+const cats=document.getElementById("categories");
+categories.forEach((cat,i)=>{const b=document.createElement("button");b.className="cat"+(i===0?" active":"");b.textContent=cat;b.onclick=()=>selectCategory(cat,b);cats.appendChild(b)});
+function selectCategory(cat,btn){document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));btn.classList.add("active");currentSet=cat==="すべて"? [...questions]:questions.filter(x=>x.cat===cat);restart()}
+function restart(){index=0;score=0;answered=false;history=[];document.getElementById("quiz").style.display="block";document.getElementById("result").style.display="none";showQuestion()}
+function showQuestion(){const x=currentSet[index];answered=false;document.getElementById("progressText").textContent=`第${index+1}問 / ${currentSet.length}問`;document.getElementById("scoreText").textContent=`正解 ${score}問`;document.getElementById("progressBar").style.width=((index)/currentSet.length*100)+"%";document.getElementById("categoryTitle").textContent="【"+x.cat+"】";document.getElementById("question").textContent=x.q;const box=document.getElementById("options");box.innerHTML="";x.a.forEach((ans,i)=>{const b=document.createElement("button");b.className="option";b.textContent=`${String.fromCharCode(65+i)}. ${ans}`;b.onclick=()=>answer(i,b);box.appendChild(b)});const f=document.getElementById("feedback");f.className="feedback";f.textContent="";document.getElementById("next").style.display="none"}
+function answer(i,button){if(answered)return;answered=true;const x=currentSet[index];document.querySelectorAll(".option").forEach(b=>b.disabled=true);if(i===x.c){score++;button.classList.add("correct");feedback("⭕ 正解！",x.e,true)}else{button.classList.add("wrong");document.querySelectorAll(".option")[x.c].classList.add("correct");feedback("❌ 不正解",`正解は「${x.a[x.c]}」です。${x.e}`,false)}history.push({q:x.q,correct:i===x.c,right:x.a[x.c]});document.getElementById("scoreText").textContent=`正解 ${score}問`;document.getElementById("progressBar").style.width=((index+1)/currentSet.length*100)+"%";document.getElementById("next").style.display="block"}
+function feedback(title,msg,ok){const f=document.getElementById("feedback");f.className="feedback show "+(ok?"ok":"ng");f.innerHTML="";const strong=document.createElement("strong");strong.textContent=title;f.appendChild(strong);f.appendChild(document.createElement("br"));const span=document.createElement("span");span.textContent=msg;f.appendChild(span)}
+document.getElementById("next").onclick=()=>{index++;if(index<currentSet.length)showQuestion();else showResult()}
+function showResult(){document.getElementById("quiz").style.display="none";document.getElementById("result").style.display="block";document.getElementById("finalScore").textContent=`${score} / ${currentSet.length}`;const rate=score/currentSet.length;document.getElementById("resultMessage").textContent=rate===1?"🌟 全問正解！":rate>=.8?"✨ かなり正解できています！":rate>=.6?"👍 いい感じ！間違えた問題を復習しましょう。":"📖 もう一度挑戦して、用語を覚えていきましょう！";document.getElementById("review").innerHTML="<h3>📝 結果</h3>"+history.map((h,i)=>`<div class="review-item">${h.correct?"⭕":"❌"} 第${i+1}問：${escapeHTML(h.q)}<br><small>正解：${escapeHTML(h.right)}</small></div>`).join("")}
+function escapeHTML(text){return String(text).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+restart();
+</script>
+</body>
+</html>

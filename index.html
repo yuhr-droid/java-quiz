@@ -10,7 +10,9 @@
 :root{--bg:#171820;--panel:#22232e;--panel2:#1d1e27;--text:#eeeaf5;--dim:#9693a6;--accent:#7dd3a8;--accent2:#f2b880;--border:#353647;--good:#6fcf97;--bad:#eb6b6b;--goodbg:rgba(111,207,151,.12);--badbg:rgba(235,107,107,.12)}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;padding:28px 14px 70px} .wrap{width:100%;max-width:850px;margin:auto}
 header{margin-bottom:18px} .kicker{font:700 12px 'JetBrains Mono';color:var(--accent);letter-spacing:.08em} h1{font-size:24px;margin:6px 0} .sub{color:var(--dim);font-size:13px;line-height:1.7;margin:0}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0} .topbtn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:9px 12px;cursor:pointer;font-weight:700;font-size:13px} .topbtn.active,.topbtn:hover{border-color:var(--accent);color:var(--accent)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0} .
+  topbtn{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;padding:9px 12px;cursor:pointer;font-weight:700;font-size:13;pxtext-decoration:none;} .topbtn.active,.topbtn:hover{border-color:var(--accent);color:var(--accent)}
+  
 .menu{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px} .menu h2{font-size:14px;margin:0 0 10px} .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .cat{text-align:left;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:11px;cursor:pointer;min-height:68px} .cat:hover{border-color:var(--accent)} .cat.current{border-color:var(--accent);background:rgba(125,211,168,.07)} .catno{font:700 11px 'JetBrains Mono';color:var(--accent2)} .catname{font-size:13px;font-weight:700;margin-top:3px} .catmeta{font-size:11px;color:var(--dim);margin-top:4px}
 .progress{display:flex;align-items:center;gap:10px;font:12px 'JetBrains Mono';color:var(--dim);margin:12px 0} .bar{height:6px;background:var(--border);border-radius:9px;overflow:hidden;flex:1} .fill{height:100%;background:var(--accent);width:0%;transition:.25s}
 .section{background:linear-gradient(135deg,rgba(125,211,168,.12),rgba(125,211,168,.03));border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:13px 15px;margin:10px 0 12px} .section-k{font:11px 'JetBrains Mono';color:var(--accent)} .section-title{font-size:18px;font-weight:700;margin-top:3px} .section-meta{color:var(--dim);font-size:12px;margin-top:5px}
@@ -23,7 +25,7 @@ header{margin-bottom:18px} .kicker{font:700 12px 'JetBrains Mono';color:var(--ac
 </style></head>
 <body><div class="wrap">
 <header><div class="kicker">JAVA QUIZ — 18項目・全100問</div><h1>Java 基礎・コード読解・オブジェクト指向クイズ</h1><p class="sub">Seito_10・Kanri_10・Osarai6_10のコード読解とJava基本資料をまとめた100問。似た内容は整理し、項目を選んで好きなところから学習できます。</p></header>
-<div class="toolbar"><button class="topbtn active" id="menuBtn">☰ 項目一覧</button><button class="topbtn" id="allBtn">▶ 全100問</button><button class="topbtn" id="resultBtn">▣ 成績</button><button class="topbtn" id="htmlBtn">🌐 HTMLクイズ</button></div>
+<div class="toolbar"><button class="topbtn active" id="menuBtn">☰ 項目一覧</button><button class="topbtn" id="allBtn">▶ 全100問</button><button class="topbtn" id="resultBtn">▣ 成績</button><a class="topbtn" href="./html.html">🌐 HTMLクイズ</a></div>
 <div class="menu" id="menu"><h2>学習する項目を選択</h2><div class="catgrid" id="catGrid"></div></div>
 <div id="quiz" class="hidden"><div class="progress"><span id="overallLabel">全体 1 / 100</span><div class="bar"><div class="fill" id="overallFill"></div></div></div>
 <div class="section"><div class="section-k" id="sectionK"></div><div class="section-title" id="sectionTitle"></div><div class="section-meta" id="sectionMeta"></div></div>
@@ -127,7 +129,4 @@ function finish(){quiz.classList.add('hidden');menu.classList.add('hidden');resu
 function showMenu(){quiz.classList.add('hidden');result.classList.add('hidden');menu.classList.remove('hidden');renderMenu();}
 document.getElementById('menuBtn').onclick=showMenu;document.getElementById('allBtn').onclick=startAll;document.getElementById('resultBtn').onclick=finish;document.getElementById('jumpBtn').onclick=showMenu;document.getElementById('nextBtn').onclick=next;document.getElementById('backMenu').onclick=showMenu;
 renderMenu();
-document.getElementById("htmlBtn").onclick = () => {
-location.href = "html.html";
-};
 </script></body></html>
